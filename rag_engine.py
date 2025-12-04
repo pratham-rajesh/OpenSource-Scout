@@ -57,9 +57,14 @@ class RAGEngine:
                 print(f"ChromaDB initialization failed: {e}")
                 self.client = None
         
-        # Initialize OpenAI if key exists
-        if os.getenv("OPENAI_API_KEY"):
-            self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # Initialize OpenAI if key exists and is not placeholder
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if openai_key and openai_key != "your_openai_key_here":
+            try:
+                self.openai_client = OpenAI(api_key=openai_key)
+            except Exception as e:
+                print(f"OpenAI initialization failed: {e}")
+                self.openai_client = None
     
     def add_solved_issue(self, user_id, issue_data):
         """

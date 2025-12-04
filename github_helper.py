@@ -18,7 +18,8 @@ GITHUB_API = "https://api.github.com"
 def get_headers():
     """Get headers for GitHub API requests."""
     token = os.getenv("GITHUB_TOKEN")
-    if token:
+    # Only use token if it's not the placeholder value
+    if token and token != "your_github_token_here":
         return {
             "Authorization": f"token {token}",
             "Accept": "application/vnd.github.v3+json"
@@ -30,8 +31,16 @@ def get_user_info(username):
     """Get basic GitHub user info."""
     url = f"{GITHUB_API}/users/{username}"
     try:
-        response = requests.get(url, headers=get_headers())
-        if response.status_code == 200:
+        response = requests.get(url, headers=get_headers(), timeout=10)
+
+        # Better error handling
+        if response.status_code == 404:
+            print(f"GitHub user '{username}' not found (404)")
+            return None
+        elif response.status_code == 403:
+            print(f"GitHub API rate limit exceeded. Add GITHUB_TOKEN to .env")
+            return None
+        elif response.status_code == 200:
             data = response.json()
             return {
                 "name": data.get("name", username),
@@ -41,9 +50,15 @@ def get_user_info(username):
                 "followers": data.get("followers", 0),
                 "github_url": data.get("html_url", "")
             }
+        else:
+            print(f"GitHub API error: {response.status_code} - {response.text[:200]}")
+            return None
+    except requests.exceptions.Timeout:
+        print(f"GitHub API timeout for user: {username}")
+        return None
     except Exception as e:
         print(f"Error fetching user info: {e}")
-    return None
+        return None
 
 
 def get_user_languages(username):

@@ -30,6 +30,7 @@ from rag_engine import get_rag_engine
 from kdd_process import get_kdd_pipeline
 from feature_engineering import get_feature_engineer
 from testing import get_model_tester, run_recommendation_test
+from chatbot import get_chatbot
 
 # Initializing Flask application
 app = Flask(__name__)
@@ -426,13 +427,75 @@ def run_tests():
         })
 
 
+@app.route('/api/chat', methods=['POST'])
+@login_required
+def chat():
+    """
+    API endpoint for chatbot interactions.
+    Provides RAG-powered coding assistance.
+    """
+    data = request.get_json()
+    user_message = data.get('message', '').strip()
+    conversation_history = data.get('history', [])
+
+    if not user_message:
+        return jsonify({
+            'error': True,
+            'message': 'No message provided'
+        })
+
+    try:
+        chatbot = get_chatbot()
+        result = chatbot.get_chat_response(
+            user_id=current_user.id,
+            user_message=user_message,
+            conversation_history=conversation_history
+        )
+
+        return jsonify({
+            'error': False,
+            'response': result['response'],
+            'similar_issues': result['similar_issues'],
+            'sources': result['sources']
+        })
+
+    except Exception as e:
+        print(f"Chat error: {e}")
+        return jsonify({
+            'error': True,
+            'message': 'Sorry, I encountered an error. Please try again.'
+        })
+
+
+@app.route('/api/chat/quick-actions', methods=['GET'])
+@login_required
+def chat_quick_actions():
+    """Get contextual quick action buttons for chatbot."""
+    try:
+        chatbot = get_chatbot()
+        actions = chatbot.get_quick_actions(current_user.id)
+
+        return jsonify({
+            'error': False,
+            'actions': actions
+        })
+
+    except Exception as e:
+        print(f"Quick actions error: {e}")
+        return jsonify({
+            'error': True,
+            'actions': []
+        })
+
+
 @app.route('/health')
 def health():
     """Health check endpoint."""
     return jsonify({
         'status': 'ok',
         'github_token': 'configured' if os.getenv('GITHUB_TOKEN') else 'not configured',
-        'openai_key': 'configured' if os.getenv('OPENAI_API_KEY') else 'not configured'
+        'openai_key': 'configured' if os.getenv('OPENAI_API_KEY') else 'not configured',
+        'groq_key': 'configured' if os.getenv('GROQ_API_KEY') else 'not configured'
     })
 
 
