@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - OpenSource Scout{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 30px;">👋 Welcome, {{ current_user.username }}!</h1>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-box">
+        <div class="number">{{ solved_count }}</div>
+        <div class="label">Issues Solved</div>
+    </div>
+    
+    <div class="stat-box">
+        <div class="number">{{ skills|length }}</div>
+        <div class="label">Languages</div>
+    </div>
+    
+    {% if github_stats %}
+    <div class="stat-box">
+        <div class="number">{{ github_stats.total }}</div>
+        <div class="label">Total PRs</div>
+    </div>
+    
+    <div class="stat-box">
+        <div class="number">{{ github_stats.success_rate }}%</div>
+        <div class="label">PR Success Rate</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <h2>Quick Actions</h2>
+    <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+        <a href="{{ url_for('search') }}" class="btn">🔍 Find Issues</a>
+        <a href="{{ url_for('history') }}" class="btn btn-secondary">📜 View History</a>
+        {% if not current_user.github_username %}
+        <a href="{{ url_for('settings') }}" class="btn btn-secondary">🔗 Link GitHub</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- GitHub Connection Status -->
+<div class="card">
+    <h2>GitHub Connection</h2>
+    {% if current_user.github_username %}
+        <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+            <span class="tag tag-primary">✓ Connected</span>
+            <span style="color: #8892b0;">@{{ current_user.github_username }}</span>
+            <a href="{{ url_for('settings') }}" style="color: #64ffda;">Change</a>
+        </div>
+        
+        {% if github_stats %}
+        <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+            <h4 style="margin-bottom: 10px;">PR Statistics</h4>
+            <p style="color: #8892b0;">
+                Merged: <span style="color: #4caf50;">{{ github_stats.merged }}</span> |
+                Open: <span style="color: #ff9800;">{{ github_stats.open }}</span> |
+                Closed (not merged): <span style="color: #f44336;">{{ github_stats.closed_not_merged }}</span>
+            </p>
+        </div>
+        {% endif %}
+    {% else %}
+        <div style="margin-top: 15px;">
+            <span class="tag tag-secondary">Not connected</span>
+            <p style="color: #8892b0; margin-top: 10px;">
+                Link your GitHub account to get personalized recommendations.
+            </p>
+            <a href="{{ url_for('settings') }}" class="btn btn-small" style="margin-top: 10px;">
+                Link GitHub
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Skills -->
+<div class="card">
+    <h2>Your Skills</h2>
+    {% if skills %}
+        <div style="margin-top: 15px;">
+            {% for skill in skills %}
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
+                <span class="tag tag-primary">{{ skill.language }}</span>
+                <div style="flex: 1; background: rgba(255,255,255,0.1); border-radius: 5px; height: 10px;">
+                    <div style="width: {{ skill.skill_level * 10 }}%; background: #64ffda; border-radius: 5px; height: 100%;"></div>
+                </div>
+                <span style="color: #8892b0; font-size: 0.9rem;">
+                    Level {{ skill.skill_level }} ({{ skill.issues_solved }} solved)
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No skills recorded yet. Start solving issues to build your profile!</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recent Activity -->
+<div class="card">
+    <h2>Recent Activity</h2>
+    {% if recent_solved %}
+        <div style="margin-top: 15px;">
+            {% for issue in recent_solved %}
+            <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <a href="{{ issue.issue_url }}" target="_blank" style="color: #64ffda; text-decoration: none;">
+                            {{ issue.issue_title[:60] }}{% if issue.issue_title|length > 60 %}...{% endif %}
+                        </a>
+                        <p style="color: #8892b0; font-size: 0.9rem; margin-top: 5px;">
+                            {{ issue.repo_name }}
+                        </p>
+                    </div>
+                    <span class="difficulty difficulty-{{ issue.difficulty_rating }}">
+                        {{ issue.difficulty_rating }}/5
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{{ url_for('history') }}" style="color: #64ffda; display: block; margin-top: 15px;">
+            View all history →
+        </a>
+    {% else %}
+        <div class="empty-state">
+            <p>No solved issues yet. <a href="{{ url_for('search') }}" style="color: #64ffda;">Find your first issue!</a></p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

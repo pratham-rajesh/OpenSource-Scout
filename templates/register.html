@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - OpenSource Scout{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 50px auto;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 30px;">Create Account</h2>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus 
+                       placeholder="Choose a username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required
+                       placeholder="At least 4 characters">
+            </div>
+            
+            <div class="form-group">
+                <label for="github_username">GitHub Username (Optional)</label>
+                <input type="text" id="github_username" name="github_username"
+                       placeholder="e.g., octocat">
+                <small style="color: #8892b0; display: block; margin-top: 5px;">
+                    You can add this later in settings
+                </small>
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%;">Create Account</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 20px; color: #8892b0;">
+            Already have an account? <a href="{{ url_for('login') }}" style="color: #64ffda;">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

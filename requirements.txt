@@ -1,0 +1,25 @@
+# ==========================================
+# OpenSource Scout v2.0 - Full Version
+# ==========================================
+
+# Web Framework
+flask==3.0.0
+
+# Database
+flask-sqlalchemy==3.1.1
+flask-login==0.6.3
+
+# GitHub API
+requests==2.31.0
+
+# AI / OpenAI
+openai==1.12.0
+
+# RAG - Vector Database
+chromadb==0.4.22
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Password Hashing (for simple auth)
+werkzeug==3.0.1

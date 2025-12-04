@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - OpenSource Scout{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 30px;">⚙️ Settings</h1>
+
+<div class="card">
+    <h2>GitHub Connection</h2>
+    <p style="color: #8892b0; margin: 10px 0;">
+        Link your GitHub account to get personalized recommendations based on your profile.
+    </p>
+    
+    <form method="POST" style="margin-top: 20px;">
+        <div class="form-group">
+            <label for="github_username">GitHub Username</label>
+            <input type="text" id="github_username" name="github_username" 
+                   value="{{ current_user.github_username or '' }}"
+                   placeholder="e.g., octocat">
+        </div>
+        
+        <button type="submit" class="btn">Save Settings</button>
+    </form>
+    
+    {% if current_user.github_username %}
+    <div style="margin-top: 20px; padding: 15px; background: rgba(76, 175, 80, 0.2); border-radius: 10px;">
+        <span style="color: #4caf50;">✓ Connected to GitHub as @{{ current_user.github_username }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Account Info</h2>
+    <div style="margin-top: 15px; color: #8892b0;">
+        <p><strong>Username:</strong> {{ current_user.username }}</p>
+        <p><strong>Member since:</strong> {{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else 'Unknown' }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>API Keys Status</h2>
+    <p style="color: #8892b0; margin: 10px 0;">
+        These are configured in the server's .env file.
+    </p>
+    <div style="margin-top: 15px;">
+        <p>
+            <strong>GitHub Token:</strong> 
+            <span class="tag {% if config.get('GITHUB_TOKEN') %}tag-primary{% else %}tag-secondary{% endif %}">
+                {% if config.get('GITHUB_TOKEN') %}✓ Configured{% else %}✗ Not set{% endif %}
+            </span>
+        </p>
+        <p style="margin-top: 10px;">
+            <strong>OpenAI Key:</strong>
+            <span class="tag {% if config.get('OPENAI_API_KEY') %}tag-primary{% else %}tag-secondary{% endif %}">
+                {% if config.get('OPENAI_API_KEY') %}✓ Configured{% else %}✗ Not set{% endif %}
+            </span>
+        </p>
+    </div>
+</div>
+{% endblock %}

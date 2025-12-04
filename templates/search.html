@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Search Issues - OpenSource Scout{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 30px;">🔍 Find Issues to Contribute</h1>
+
+<!-- Search Form -->
+<div class="card">
+    <form id="searchForm">
+        <div class="form-group">
+            <label for="github_username">GitHub Username</label>
+            <input type="text" id="github_username" name="github_username" 
+                   value="{{ current_user.github_username or '' }}"
+                   placeholder="Enter GitHub username to analyze">
+            <small style="color: #8892b0; display: block; margin-top: 5px;">
+                {% if current_user.github_username %}
+                    Using your linked account. Change above to search for someone else.
+                {% else %}
+                    Link your GitHub in <a href="{{ url_for('settings') }}" style="color: #64ffda;">settings</a> to save this.
+                {% endif %}
+            </small>
+        </div>
+        <button type="submit" class="btn" id="searchBtn">🚀 Find Matching Issues</button>
+    </form>
+</div>
+
+<!-- Loading -->
+<div id="loading" class="loading" style="display: none;">
+    <div class="spinner"></div>
+    <p>Analyzing profile and finding matches...</p>
+</div>
+
+<!-- Error -->
+<div id="error" class="flash error" style="display: none;"></div>
+
+<!-- Results -->
+<div id="results" style="display: none;">
+    
+    <!-- User Profile -->
+    <div class="card" id="profileCard"></div>
+    
+    <!-- User Patterns (from RAG) -->
+    <div class="card" id="patternsCard" style="display: none;"></div>
+    
+    <!-- AI Advice -->
+    <div class="card" id="adviceCard" style="background: rgba(100, 255, 218, 0.1); border-left: 4px solid #64ffda;"></div>
+    
+    <!-- Recommended Issues -->
+    <div class="card">
+        <h2>🎯 Top Recommendations for You</h2>
+        <div id="recommendations"></div>
+    </div>
+    
+    <!-- All Issues -->
+    <div class="card">
+        <h2>📋 All Matching Issues</h2>
+        <div id="allIssues"></div>
+    </div>
+</div>
+
+<!-- Mark Solved Modal -->
+<div id="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000;">
+    <div style="max-width: 500px; margin: 100px auto; background: #1a1a2e; padding: 30px; border-radius: 15px;">
+        <h2 style="color: #64ffda; margin-bottom: 20px;">Mark as Solved ✓</h2>
+        <form id="solvedForm">
+            <input type="hidden" id="modal_issue_url">
+            <input type="hidden" id="modal_issue_title">
+            <input type="hidden" id="modal_repo_name">
+            <input type="hidden" id="modal_language">
+            
+            <div class="form-group">
+                <label>How difficult was it? (1-5)</label>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <label><input type="radio" name="difficulty" value="1" checked> 1 (Easy)</label>
+                    <label><input type="radio" name="difficulty" value="2"> 2</label>
+                    <label><input type="radio" name="difficulty" value="3"> 3</label>
+                    <label><input type="radio" name="difficulty" value="4"> 4</label>
+                    <label><input type="radio" name="difficulty" value="5"> 5 (Hard)</label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <input type="text" id="notes" placeholder="What did you learn?">
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const form = document.getElementById('searchForm');
+const searchBtn = document.getElementById('searchBtn');
+const loading = document.getElementById('loading');
+const error = document.getElementById('error');
+const results = document.getElementById('results');
+
+// Search form submission
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const username = document.getElementById('github_username').value.trim();
+    
+    loading.style.display = 'block';
+    error.style.display = 'none';
+    results.style.display = 'none';
+    searchBtn.disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('github_username', username);
+        
+        const response = await fetch('/api/search', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        loading.style.display = 'none';
+        
+        if (data.error) {
+            error.textContent = data.message;
+            error.style.display = 'block';
+        } else {
+            displayResults(data);
+            results.style.display = 'block';
+        }
+    } catch (err) {
+        loading.style.display = 'none';
+        error.textContent = 'Connection error. Is the server running?';
+        error.style.display = 'block';
+    } finally {
+        searchBtn.disabled = false;
+    }
+});
+
+function displayResults(data) {
+    // Profile
+    document.getElementById('profileCard').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <img src="${data.user.avatar}" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #64ffda;">
+            <div>
+                <h2>${data.user.name}</h2>
+                <p style="color: #8892b0;">${data.user.bio || 'No bio'}</p>
+                <div style="margin-top: 10px;">
+                    ${data.languages.slice(0, 5).map(l => 
+                        `<span class="tag tag-primary">${Array.isArray(l) ? l[0] : l}</span>`
+                    ).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Patterns (from RAG)
+    const patternsCard = document.getElementById('patternsCard');
+    if (data.user_patterns) {
+        patternsCard.style.display = 'block';
+        patternsCard.innerHTML = `
+            <h2>📊 Your Patterns (from RAG)</h2>
+            <p style="margin-top: 10px;">
+                Solved: <strong>${data.user_patterns.total_solved}</strong> issues |
+                Avg Difficulty: <strong>${data.user_patterns.avg_difficulty}/5</strong>
+            </p>
+        `;
+    } else {
+        patternsCard.style.display = 'none';
+    }
+    
+    // Advice
+    document.getElementById('adviceCard').innerHTML = `
+        <strong>💡 AI Recommendation:</strong> ${data.advice}
+    `;
+    
+    // Recommendations
+    const recsDiv = document.getElementById('recommendations');
+    if (data.recommendations.length === 0) {
+        recsDiv.innerHTML = '<p style="color: #8892b0;">No recommendations yet. Try searching!</p>';
+    } else {
+        recsDiv.innerHTML = data.recommendations.map(issue => createIssueCard(issue, true)).join('');
+    }
+    
+    // All Issues
+    const allDiv = document.getElementById('allIssues');
+    if (data.all_issues.length === 0) {
+        allDiv.innerHTML = '<p style="color: #8892b0;">No matching issues found.</p>';
+    } else {
+        allDiv.innerHTML = data.all_issues.map(issue => createIssueCard(issue, false)).join('');
+    }
+}
+
+function createIssueCard(issue, isRecommended) {
+    const diffClass = issue.ai_difficulty ? issue.ai_difficulty.toLowerCase() : `difficulty-${issue.difficulty_estimate || 3}`;
+    
+    return `
+        <div class="issue-card">
+            <div class="issue-header">
+                <a href="${issue.url}" target="_blank" class="issue-title">${escapeHtml(issue.title)}</a>
+                <span class="difficulty ${diffClass}">${issue.ai_difficulty || issue.difficulty_estimate + '/5'}</span>
+            </div>
+            <div class="issue-repo">📁 ${issue.repo} | 🗣️ ${issue.comments || 0} comments</div>
+            
+            ${isRecommended ? `
+                <div class="issue-reason">
+                    <strong>Why this matches you:</strong> ${issue.ai_match_reason || 'Matches your skills'}<br>
+                    <strong>What you'll learn:</strong> ${issue.ai_learning || 'Open source experience'}
+                </div>
+            ` : ''}
+            
+            <div class="issue-actions">
+                <a href="${issue.url}" target="_blank" class="btn btn-small">View Issue</a>
+                <button class="btn btn-small btn-secondary" onclick="openSolvedModal('${escapeHtml(issue.url)}', '${escapeHtml(issue.title)}', '${escapeHtml(issue.repo)}', '${issue.language}')">
+                    ✓ Mark Solved
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML.replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+// Modal functions
+function openSolvedModal(url, title, repo, language) {
+    document.getElementById('modal_issue_url').value = url;
+    document.getElementById('modal_issue_title').value = title;
+    document.getElementById('modal_repo_name').value = repo;
+    document.getElementById('modal_language').value = language;
+    document.getElementById('modal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+}
+
+// Mark solved form
+document.getElementById('solvedForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const data = {
+        issue_url: document.getElementById('modal_issue_url').value,
+        issue_title: document.getElementById('modal_issue_title').value,
+        repo_name: document.getElementById('modal_repo_name').value,
+        language: document.getElementById('modal_language').value,
+        difficulty_rating: parseInt(document.querySelector('input[name="difficulty"]:checked').value),
+        user_notes: document.getElementById('notes').value
+    };
+    
+    try {
+        const response = await fetch('/api/mark_solved', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            alert(result.message);
+        } else {
+            alert('Issue marked as solved! Great job! 🎉');
+            closeModal();
+            // Refresh search to remove solved issue
+            form.dispatchEvent(new Event('submit'));
+        }
+    } catch (err) {
+        alert('Error saving. Please try again.');
+    }
+});
+</script>
+{% endblock %}

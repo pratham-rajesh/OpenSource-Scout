@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}OpenSource Scout - Find Your First Contribution{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 60px 20px;">
+    <h1 style="font-size: 3rem; margin-bottom: 20px;">🔍 OpenSource Scout</h1>
+    <p style="font-size: 1.3rem; color: #8892b0; margin-bottom: 40px;">
+        AI-powered recommendations for your open source journey
+    </p>
+    
+    <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+        <a href="{{ url_for('register') }}" class="btn" style="font-size: 1.2rem; padding: 15px 40px;">
+            🚀 Get Started
+        </a>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary" style="font-size: 1.2rem; padding: 15px 40px;">
+            Login
+        </a>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="stats-grid" style="margin-top: 40px;">
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 10px;">🎯</div>
+        <h3 style="color: #64ffda; margin-bottom: 10px;">Smart Matching</h3>
+        <p style="color: #8892b0;">Finds issues that match your skill level and languages</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 10px;">🧠</div>
+        <h3 style="color: #64ffda; margin-bottom: 10px;">RAG-Powered</h3>
+        <p style="color: #8892b0;">Learns from your history to give better recommendations</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 10px;">📈</div>
+        <h3 style="color: #64ffda; margin-bottom: 10px;">Track Progress</h3>
+        <p style="color: #8892b0;">See your skills grow as you contribute</p>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="card" style="margin-top: 20px;">
+    <h2>How It Works</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div>
+            <div style="color: #64ffda; font-size: 1.5rem; margin-bottom: 10px;">1</div>
+            <h4>Connect GitHub</h4>
+            <p style="color: #8892b0;">Link your GitHub profile</p>
+        </div>
+        <div>
+            <div style="color: #64ffda; font-size: 1.5rem; margin-bottom: 10px;">2</div>
+            <h4>Get Recommendations</h4>
+            <p style="color: #8892b0;">AI finds perfect issues for you</p>
+        </div>
+        <div>
+            <div style="color: #64ffda; font-size: 1.5rem; margin-bottom: 10px;">3</div>
+            <h4>Contribute</h4>
+            <p style="color: #8892b0;">Solve issues & mark them done</p>
+        </div>
+        <div>
+            <div style="color: #64ffda; font-size: 1.5rem; margin-bottom: 10px;">4</div>
+            <h4>Level Up</h4>
+            <p style="color: #8892b0;">Track progress & unlock harder issues</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
