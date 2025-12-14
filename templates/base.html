@@ -664,6 +664,7 @@
 
         let conversationHistory = [];
         let isTyping = false;
+        let sessionId = localStorage.getItem('chat_session_id') || null;
 
         // Toggle chat panel
         chatButton.addEventListener('click', () => {
@@ -724,7 +725,7 @@
                     },
                     body: JSON.stringify({
                         message: message,
-                        history: conversationHistory
+                        session_id: sessionId
                     })
                 });
 
@@ -735,7 +736,18 @@
                 if (data.error) {
                     addMessage('bot', data.message || 'Sorry, I encountered an error.');
                 } else {
+                    // Update session ID
+                    if (data.session_id) {
+                        sessionId = data.session_id;
+                        localStorage.setItem('chat_session_id', sessionId);
+                    }
+
                     addMessage('bot', data.response);
+
+                    // Add sources if available
+                    if (data.sources && data.sources.length > 0) {
+                        displaySources(data.sources);
+                    }
 
                     // Add to history
                     conversationHistory.push({
@@ -776,6 +788,35 @@
             if (welcome) welcome.remove();
 
             chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Display sources
+        function displaySources(sources) {
+            if (!sources || sources.length === 0) return;
+
+            const sourcesDiv = document.createElement('div');
+            sourcesDiv.className = 'message bot';
+            sourcesDiv.style.fontSize = '0.85em';
+            sourcesDiv.style.opacity = '0.8';
+
+            const sourcesContent = document.createElement('div');
+            sourcesContent.className = 'message-bubble';
+            sourcesContent.innerHTML = '<strong>📚 Sources:</strong><br>';
+
+            sources.forEach((source, i) => {
+                const link = document.createElement('a');
+                link.href = source.url;
+                link.target = '_blank';
+                link.textContent = `${i + 1}. ${source.title}`;
+                link.style.display = 'block';
+                link.style.color = '#60a5fa';
+                link.style.marginTop = '4px';
+                sourcesContent.appendChild(link);
+            });
+
+            sourcesDiv.appendChild(sourcesContent);
+            chatMessages.appendChild(sourcesDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 

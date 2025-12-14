@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Importing application modules
-from models import db, User, SolvedIssue, UserSkill, IssueCache
+from models import db, User, SolvedIssue, UserSkill, IssueCache, ChatSession, Conversation
 from auth import create_user, verify_user, update_github_username
 from github_helper import (
     get_user_info, get_user_languages, search_good_first_issues,
@@ -30,7 +30,7 @@ from rag_engine import get_rag_engine
 from kdd_process import get_kdd_pipeline
 from feature_engineering import get_feature_engineer
 from testing import get_model_tester, run_recommendation_test
-from chatbot import get_chatbot
+from chatbot.chatbot_service import get_chatbot
 
 # Initializing Flask application
 app = Flask(__name__)
@@ -432,11 +432,11 @@ def run_tests():
 def chat():
     """
     API endpoint for chatbot interactions.
-    Provides RAG-powered coding assistance.
+    Production RAG-powered coding assistance with session management.
     """
     data = request.get_json()
     user_message = data.get('message', '').strip()
-    conversation_history = data.get('history', [])
+    session_id = data.get('session_id')  # Optional session ID
 
     if not user_message:
         return jsonify({
@@ -449,14 +449,15 @@ def chat():
         result = chatbot.get_chat_response(
             user_id=current_user.id,
             user_message=user_message,
-            conversation_history=conversation_history
+            session_id=session_id
         )
 
         return jsonify({
             'error': False,
             'response': result['response'],
-            'similar_issues': result['similar_issues'],
-            'sources': result['sources']
+            'session_id': result['session_id'],
+            'sources': result['sources'],
+            'intent': result.get('intent', 'unknown')
         })
 
     except Exception as e:
@@ -467,24 +468,25 @@ def chat():
         })
 
 
-@app.route('/api/chat/quick-actions', methods=['GET'])
+@app.route('/api/chat/clear/<session_id>', methods=['DELETE'])
 @login_required
-def chat_quick_actions():
-    """Get contextual quick action buttons for chatbot."""
+def clear_chat(session_id):
+    """Clear a chat session."""
     try:
         chatbot = get_chatbot()
-        actions = chatbot.get_quick_actions(current_user.id)
+        success = chatbot.clear_session(current_user.id, session_id)
 
         return jsonify({
             'error': False,
-            'actions': actions
+            'success': success,
+            'message': 'Chat cleared successfully'
         })
 
     except Exception as e:
-        print(f"Quick actions error: {e}")
+        print(f"Clear chat error: {e}")
         return jsonify({
             'error': True,
-            'actions': []
+            'message': 'Failed to clear chat'
         })
 
 
