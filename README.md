@@ -7,6 +7,12 @@
 
 An intelligent AI-powered platform that helps developers discover the perfect open-source issues to contribute to, based on their skills, experience, and interests. Built with advanced RAG (Retrieval Augmented Generation) and KDD (Knowledge Discovery in Databases) pipelines.
 
+## Team Members:
+
+- **Pratham Rajesh**
+- **Shreram Palanisamy**
+- **Venkata Rama Gowri Preetam Gunisetty**
+
 ## 📺 Demo & Presentation
 
 - **🎥 Video Demo**: [Watch Demo](https://youtu.be/5SUX6wNTbm8)
