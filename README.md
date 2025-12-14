@@ -11,7 +11,7 @@ An intelligent AI-powered platform that helps developers discover the perfect op
 
 - **🎥 Video Demo**: [Watch Demo](https://youtu.be/5SUX6wNTbm8)
 - **📊 Presentation Slides**: [View Slides](https://docs.google.com/presentation/d/1DlbIibuHeVliemwHJqZrA1hAd8dmhdL9bnmG9UbYSyw/edit?usp=sharing)
-
+- **📄 Project Report**: [Watch Demo](https://docs.google.com/document/d/1WsfdlVIdiKecaXbLCmkxOrqEa_-QnIBKQe798tJJyCg/edit?usp=sharing)
 
 ---
 
