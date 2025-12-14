@@ -9,9 +9,9 @@ An intelligent AI-powered platform that helps developers discover the perfect op
 
 ## 📺 Demo & Presentation
 
-- **🎥 Video Demo**: [Watch Demo](YOUR_VIDEO_LINK_HERE)
-- **📊 Presentation Slides**: [View Slides](YOUR_SLIDES_LINK_HERE)
-- **🚀 Live Demo**: [Try it Online](YOUR_DEMO_LINK_HERE)
+- **🎥 Video Demo**: [Watch Demo](https://youtu.be/5SUX6wNTbm8)
+- **📊 Presentation Slides**: [View Slides](https://docs.google.com/presentation/d/1DlbIibuHeVliemwHJqZrA1hAd8dmhdL9bnmG9UbYSyw/edit?usp=sharing)
+
 
 ---
 
